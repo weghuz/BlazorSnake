@@ -1,0 +1,136 @@
+﻿@page "/"
+@using Models
+@inherits SnakeGame
+<style>
+    #display {
+        border: 0 solid black;
+        width: 500px;
+        height: 500px;
+        font-size: 0;
+    }
+
+    .pixel {
+        box-sizing: border-box;
+        border: 1px solid blue;
+        width: 25px;
+        height: 25px;
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        vertical-align: top;
+    }
+
+    #container {
+        display: flex;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .blue {
+        background-color: blue;
+    }
+
+    .red {
+        background-color: red;
+    }
+
+    .black {
+        background-color: black;
+    }
+    .pink{
+        background-color: hotpink;
+    }
+</style>
+@code{
+    string pressedKey = "d", name = "";
+    bool alive = false, lost = false, scoreSubmit = false;
+    async Task StartGame()
+    {
+        if(!alive)
+        {
+            scoreSubmit = false;
+            alive = true;
+            lost = false;
+            player = new Snake();
+            apple = new Apple(rand);
+            Score = 0;
+            while (alive)
+            {
+                await Task.Delay(Score<15? 200 - (Score*10): 50);
+                alive = Update(pressedKey);
+            }
+            lost = true;
+        }
+
+    }
+    void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if(TestDirection(e.Key))
+        {
+            pressedKey = e.Key;
+        }
+    }
+    void SubmitScore()
+    {
+        scores.Add(new Score(name, Score));
+        scoreSubmit = true;
+        scores.Sort((i,j) => j.Points.CompareTo(i.Points));
+    }
+}
+<div tabindex="0" @onkeydown="HandleKeyDown" class="justify-content-center d-flex">
+
+    <div>
+        <div>
+            <h1 class="text-primary">
+                Noperope
+            </h1>
+        </div>
+        <div>
+            <button tabindex="-1" class="btn btn-primary" @onclick="StartGame">Start New Game</button>
+        </div>
+
+        <div>
+            @if (lost)
+            {
+                <h1 class="text-danger">You lost with a score of @Score</h1>
+                if (!scoreSubmit)
+                {
+                    <label>Player Name: </label><input tabindex="-1" type="text" @bind="@name" />
+                    <button tabindex="-1" class="btn btn-primary" @onclick="SubmitScore">Submit Score</button>
+                }
+                else
+                {
+                    int pos = 1;
+                    <h1>Top 10</h1>
+                    foreach (Score s in scores)
+                    {
+                        <div><h3 class="text-primary">@pos: @s.Name with score: @s.Points</h3></div>
+                        if (pos == 10)
+                        {
+                            break;
+                        }
+                        pos += 1;
+
+                    }
+                }
+            }
+        </div>
+        <div class="justify-content-center d-flex" id="container">
+            <div id="display">
+                @foreach (Pixel p in screen)
+                {
+                    <div class="@p.color pixel"></div>
+                }
+            </div>
+        </div>
+
+        <div>
+            @if (@alive)
+            {
+                <h1>Score: @Score</h1>
+            }
+        </div>
+    </div>
+</div>
